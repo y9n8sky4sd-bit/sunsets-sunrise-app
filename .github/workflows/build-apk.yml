@@ -1,0 +1,32 @@
+name: Build SolarTime APK
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip project
+        run: |
+          ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
+          if [ -z "$ZIP_FILE" ]; then
+            echo "No .zip file found in repo!"
+            ls -la
+            exit 1
+          fi
+          unzip -o "$ZIP_FILE"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build Debug APK
+        working-directory: SunriseSunsetApp
+        run: gradle assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SolarTime-APK
+          path: SunriseSunsetApp/app/build/outputs/apk/debug/app-debug.apk
